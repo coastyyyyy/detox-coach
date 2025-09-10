@@ -1,30 +1,57 @@
 import streamlit as st
 import pandas as pd
 import os
-import matplotlib.pyplot as plt
+from PIL import Image
+
+# File to store user data
+DATA_FILE = "users_data.csv"
+if os.path.exists(DATA_FILE):
+    users_df = pd.read_csv(DATA_FILE)
+else:
+    users_df = pd.DataFrame(columns=["username", "points", "activity", "photo"])
 
 st.title("📱 AI Social Media Detox Coach")
 
-# Path to CSV
-DATA_PATH = "data/usage_sample.csv"
+# 1️⃣ User Input
+username = st.text_input("Enter your name:")
 
-# Safe loading: check if file exists and has content
-if os.path.exists(DATA_PATH):
-    try:
-        df = pd.read_csv(DATA_PATH)
-        if df.empty:
-            st.warning("⚠️ CSV file is empty. Upload data to see stats.")
-    except pd.errors.EmptyDataError:
-        st.warning("⚠️ CSV file is empty or corrupted.")
-        df = pd.DataFrame(columns=["date", "app", "minutes", "hour_block", "text"])
-else:
-    st.warning("⚠️ CSV file not found. Upload data to see stats.")
-    df = pd.DataFrame(columns=["date", "app", "minutes", "hour_block", "text"])
+st.subheader("Enter your daily app usage")
+app_name = st.text_input("App name (e.g., Instagram)")
+minutes = st.number_input("Minutes spent", min_value=0)
 
-# Only plot if df is not empty
-if not df.empty:
-    df['date'] = pd.to_datetime(df['date']).dt.date
-    st.subheader("📊 Usage Stats by App")
-    st.bar_chart(df.groupby('app')['minutes'].sum())
-    st.subheader("📈 Daily Usage")
-    st.line_chart(df.groupby('date')['minutes'].sum())
+if st.button("Submit Usage") and username:
+    st.success(f"Data recorded: {app_name} - {minutes} minutes")
+    
+    # 2️⃣ AI Suggestions
+    if minutes > 60:
+        st.info("💡 Suggestion: Take a short walk, meditate, or read a book for 15 mins")
+    else:
+        st.info("💡 Suggestion: Good balance! Keep it up!")
+
+# 3️⃣ Photo upload
+st.subheader("Upload photo of activity completion")
+uploaded_file = st.file_uploader("Upload image", type=["png","jpg","jpeg"])
+
+if uploaded_file is not None and username:
+    image = Image.open(uploaded_file)
+    st.image(image, caption="Activity completed!", use_column_width=True)
+    
+    # 4️⃣ Give points
+    new_points = 10
+    st.success(f"🎉 You earned {new_points} points!")
+    
+    # Save to CSV
+    users_df = pd.concat([users_df, pd.DataFrame({
+        "username":[username],
+        "points":[new_points],
+        "activity":["Completed Activity"],
+        "photo":[uploaded_file.name]
+    })], ignore_index=True)
+    
+    users_df.to_csv(DATA_FILE, index=False)
+
+# 5️⃣ Leaderboard
+st.subheader("🏆 Leaderboard")
+if not users_df.empty:
+    leaderboard = users_df.groupby("username")["points"].sum().sort_values(ascending=False).reset_index()
+    st.table(leaderboard)

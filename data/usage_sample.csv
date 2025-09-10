@@ -1,8 +1,1 @@
-date,app,minutes,hour_block,text
-2025-08-29,Instagram,120,22,"Feeling low after scrolling reels"
-2025-08-29,WhatsApp,45,11,"Too many messages from work"
-2025-08-29,YouTube,90,21,"Watched random videos late"
-2025-08-30,Instagram,150,23,"Can't stop scrolling at night"
-2025-08-31,Instagram,30,14,"Posted selfie"
-2025-08-31,Twitter,40,20,"Argued in thread"
-
+username,points,activity,photo

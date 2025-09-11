@@ -1,108 +1,112 @@
 import streamlit as st
 
-# -------------------------
-# Simulated Database
-# -------------------------
-users = {}
-if "user" not in st.session_state:
-    st.session_state.user = None
+st.set_page_config(page_title="Detox Coach", page_icon="🌱", layout="centered")
 
+# Custom CSS to replicate the exact design
+st.markdown("""
+    <style>
+    body {
+        background: linear-gradient(135deg, #f2f6f9, #e6ebf0);
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .login-card {
+        background-color: #fff;
+        padding: 40px 30px;
+        border-radius: 25px;
+        box-shadow: 0px 8px 25px rgba(0,0,0,0.1);
+        width: 380px;
+        margin: 80px auto;
+        text-align: center;
+    }
+    .logo {
+        margin-bottom: 15px;
+    }
+    .title {
+        font-size: 22px;
+        font-weight: bold;
+        color: #333;
+    }
+    .subtitle {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 25px;
+    }
+    .btn {
+        padding: 10px 0;
+        width: 120px;
+        border: none;
+        border-radius: 25px;
+        font-size: 14px;
+        font-weight: bold;
+        margin: 10px 8px;
+        cursor: pointer;
+        transition: 0.3s ease;
+    }
+    .btn-login {
+        background: #6da9e4;
+        color: white;
+    }
+    .btn-login:hover {
+        background: #558ed4;
+    }
+    .btn-signup {
+        background: #8ed1a5;
+        color: white;
+    }
+    .btn-signup:hover {
+        background: #6bbd89;
+    }
+    .input-box {
+        width: 100%;
+        padding: 12px 40px;
+        margin: 12px 0;
+        border-radius: 12px;
+        border: 1px solid #ddd;
+        font-size: 14px;
+    }
+    .forgot {
+        text-align: right;
+        font-size: 12px;
+        margin: 5px 0 20px 0;
+    }
+    .forgot a {
+        color: #6da9e4;
+        text-decoration: none;
+    }
+    .or {
+        font-size: 12px;
+        color: #888;
+        margin: 15px 0;
+    }
+    .social-icons img {
+        margin: 0 8px;
+        cursor: pointer;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# -------------------------
-# Signup Page
-# -------------------------
-def signup():
-    st.title("Detox Coach 🌱")
-    st.subheader("Create your account")
+# HTML content
+st.markdown("""
+<div class="login-card">
+    <div class="logo">
+        <img src="https://img.icons8.com/fluency/48/leaf.png" width="50"/>
+    </div>
+    <div class="title">DETOX COACH</div>
+    <div class="subtitle">Reclaim Your Time</div>
 
-    name = st.text_input("Full Name")
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-    confirm_password = st.text_input("Confirm Password", type="password")
+    <button class="btn btn-login">LOGIN</button>
+    <button class="btn btn-signup">SIGNUP</button>
 
-    if st.button("Sign Up"):
-        if email in users:
-            st.error("❌ Email already registered!")
-        elif password != confirm_password:
-            st.error("❌ Passwords do not match!")
-        else:
-            users[email] = {"name": name, "password": password, "points": 0}
-            st.success("✅ Signup successful! Please login.")
-            st.session_state.user = email
-            st.rerun()
+    <input type="text" placeholder="Email" class="input-box"/>
+    <input type="password" placeholder="Password" class="input-box"/>
 
+    <div class="forgot"><a href="#">Forgot Password?</a></div>
 
-# -------------------------
-# Login Page
-# -------------------------
-def login():
-    st.title("Detox Coach 🌱")
-    st.subheader("Welcome Back")
-
-    email = st.text_input("Email")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if email in users and users[email]["password"] == password:
-            st.success(f"✅ Welcome {users[email]['name']}!")
-            st.session_state.user = email
-            st.rerun()
-        else:
-            st.error("❌ Invalid credentials!")
-
-
-# -------------------------
-# Main Detox Page (After Login)
-# -------------------------
-def detox_page():
-    st.title("📱 Detox Coach Dashboard")
-    st.write(f"Hello, **{users[st.session_state.user]['name']}** 👋")
-
-    st.subheader("Enter Your Screen Time (in hours per day)")
-    app_name = st.text_input("App Name (e.g., Instagram, YouTube, etc.)")
-    screen_time = st.number_input("Screen Time (hours)", min_value=0.0, step=0.5)
-
-    st.subheader("Your Hobbies")
-    hobbies = st.text_area("List your hobbies (comma separated)")
-
-    if st.button("Get Recommendations"):
-        if app_name and screen_time > 0:
-            st.info(f"⚡ You spend {screen_time} hours on {app_name}.")
-            st.success("💡 Recommendation: Try replacing some screen time with your hobbies.")
-            if hobbies:
-                hobby_list = hobbies.split(",")
-                st.write("👉 Suggested Alternatives:")
-                for hobby in hobby_list:
-                    st.write(f"- {hobby.strip()}")
-            else:
-                st.write("👉 Suggested: Try walking, reading, or exercise.")
-        else:
-            st.warning("Please fill out your screen time and app name.")
-
-    st.subheader("Upload proof & earn points 🎯")
-    uploaded = st.file_uploader("Upload a photo of you doing your hobby/activity")
-    if uploaded:
-        users[st.session_state.user]["points"] += 10
-        st.success("✅ Proof uploaded! +10 points earned.")
-
-    st.subheader("🏆 Leaderboard")
-    leaderboard = sorted(users.items(), key=lambda x: x[1]["points"], reverse=True)
-    for rank, (email, data) in enumerate(leaderboard, start=1):
-        st.write(f"{rank}. {data['name']} - {data['points']} points")
-
-    if st.button("Logout"):
-        st.session_state.user = None
-        st.rerun()
-
-
-# -------------------------
-# App Flow
-# -------------------------
-if st.session_state.user is None:
-    choice = st.radio("Choose an option:", ["Login", "Signup"], horizontal=True)
-    if choice == "Login":
-        login()
-    else:
-        signup()
-else:
-    detox_page()
+    <div class="or">or continue with</div>
+    <div class="social-icons">
+        <img src="https://img.icons8.com/color/32/facebook-new.png"/>
+        <img src="https://img.icons8.com/color/32/google-logo.png"/>
+        <img src="https://img.icons8.com/ios-filled/32/mac-os.png"/>
+    </div>
+</div>
+""", unsafe_allow_html=True)

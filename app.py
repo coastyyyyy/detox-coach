@@ -46,13 +46,14 @@ with tab1:
 
 with tab2:
     st.markdown("<div class='login-box'>", unsafe_allow_html=True)
-    name = st.text_input("Full Name")
-    signup_email = st.text_input("Email (for signup)")
-    new_password = st.text_input("Password", type="password")
-    confirm_password = st.text_input("Confirm Password", type="password")
-    if st.button("Sign Up"):
+    name = st.text_input("Full Name", key="signup_name")
+    signup_email = st.text_input("Email (for signup)", key="signup_email")
+    new_password = st.text_input("Password (create)", type="password", key="signup_pass")
+    confirm_password = st.text_input("Confirm Password", type="password", key="signup_confirm")
+    if st.button("Sign Up", key="signup_button"):
         if new_password == confirm_password and signup_email and name:
-            st.success("Account created! Please login.")
+            st.success("✅ Account created! Please login.")
         else:
-            st.error("Passwords do not match or fields are empty.")
+            st.error("❌ Passwords do not match or fields are empty.")
     st.markdown("</div>", unsafe_allow_html=True)
+

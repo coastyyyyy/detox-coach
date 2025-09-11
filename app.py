@@ -1,127 +1,108 @@
 import streamlit as st
-import pandas as pd
-import os
-import bcrypt
 
-# ---------- FILES ----------
-USER_FILE = "users.csv"
-DATA_FILE = "users_data.csv"
-
-# Create users.csv if missing
-if not os.path.exists(USER_FILE):
-    pd.DataFrame(columns=["name", "email", "password"]).to_csv(USER_FILE, index=False)
-
-if not os.path.exists(DATA_FILE):
-    pd.DataFrame(columns=["username", "points", "activity"]).to_csv(DATA_FILE, index=False)
+# -------------------------
+# Simulated Database
+# -------------------------
+users = {}
+if "user" not in st.session_state:
+    st.session_state.user = None
 
 
-# ---------- AUTH FUNCTIONS ----------
-def signup(name, email, password, confirm_password):
-    users_df = pd.read_csv(USER_FILE)
+# -------------------------
+# Signup Page
+# -------------------------
+def signup():
+    st.title("Detox Coach 🌱")
+    st.subheader("Create your account")
 
-    if email in users_df["email"].values:
-        return False, "Email already registered!"
-    if password != confirm_password:
-        return False, "Passwords do not match!"
+    name = st.text_input("Full Name")
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    confirm_password = st.text_input("Confirm Password", type="password")
 
-    # Hash password
-    hashed_pw = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-
-    # Save to CSV
-    users_df = pd.concat([users_df, pd.DataFrame({
-        "name": [name],
-        "email": [email],
-        "password": [hashed_pw.decode()]
-    })], ignore_index=True)
-    users_df.to_csv(USER_FILE, index=False)
-    return True, "Signup successful! Please login."
-
-
-def login(email, password):
-    users_df = pd.read_csv(USER_FILE)
-
-    if email not in users_df["email"].values:
-        return False, "Email not registered!"
-
-    stored_pw = users_df.loc[users_df["email"] == email, "password"].values[0]
-
-    if bcrypt.checkpw(password.encode(), stored_pw.encode()):
-        name = users_df.loc[users_df["email"] == email, "name"].values[0]
-        return True, name
-    else:
-        return False, "Incorrect password!"
-
-
-# ---------- STREAMLIT UI ----------
-st.set_page_config(page_title="Detox Coach", page_icon="📱")
-
-if "logged_in" not in st.session_state:
-    st.session_state.logged_in = False
-    st.session_state.username = None
-
-if not st.session_state.logged_in:
-    choice = st.sidebar.radio("Login/Signup", ["Login", "Signup"])
-
-    if choice == "Signup":
-        st.subheader("🔑 Create a new account")
-        name = st.text_input("Full Name")
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        confirm_password = st.text_input("Confirm Password", type="password")
-        if st.button("Signup"):
-            success, msg = signup(name, email, password, confirm_password)
-            st.info(msg)
-
-    else:
-        st.subheader("🔓 Login to your account")
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        if st.button("Login"):
-            success, result = login(email, password)
-            if success:
-                st.session_state.logged_in = True
-                st.session_state.username = result
-                st.success(f"Welcome {result}! 🎉")
-                st.rerun()
-            else:
-                st.error(result)
-
-else:
-    # ---------- MAIN APP ----------
-    st.sidebar.success(f"Logged in as {st.session_state.username}")
-    if st.sidebar.button("Logout"):
-        st.session_state.logged_in = False
-        st.session_state.username = None
-        st.rerun()
-
-    st.title(f"📱 Welcome {st.session_state.username}!")
-    st.subheader("Tell us about your screen time")
-
-    app_name = st.text_input("App name (e.g., Instagram)")
-    minutes = st.number_input("Minutes spent", min_value=0)
-    hobbies = st.text_area("What hobbies do you enjoy? (e.g., reading, music, sports)")
-
-    if st.button("Submit Usage"):
-        if minutes > 60:
-            suggestion = f"💡 Try reducing {app_name} by {minutes//2} minutes and spend that time on {hobbies or 'your hobbies'}."
+    if st.button("Sign Up"):
+        if email in users:
+            st.error("❌ Email already registered!")
+        elif password != confirm_password:
+            st.error("❌ Passwords do not match!")
         else:
-            suggestion = "✅ Good balance! Keep it up!"
-        st.info(suggestion)
+            users[email] = {"name": name, "password": password, "points": 0}
+            st.success("✅ Signup successful! Please login.")
+            st.session_state.user = email
+            st.rerun()
 
-        # Save points for activity
-        points = 10 if minutes > 60 else 5
-        df = pd.read_csv(DATA_FILE)
-        df = pd.concat([df, pd.DataFrame({
-            "username": [st.session_state.username],
-            "points": [points],
-            "activity": [f"Reduced {app_name} usage"]
-        })], ignore_index=True)
-        df.to_csv(DATA_FILE, index=False)
 
-        st.success(f"🎉 You earned {points} points!")
+# -------------------------
+# Login Page
+# -------------------------
+def login():
+    st.title("Detox Coach 🌱")
+    st.subheader("Welcome Back")
+
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+
+    if st.button("Login"):
+        if email in users and users[email]["password"] == password:
+            st.success(f"✅ Welcome {users[email]['name']}!")
+            st.session_state.user = email
+            st.rerun()
+        else:
+            st.error("❌ Invalid credentials!")
+
+
+# -------------------------
+# Main Detox Page (After Login)
+# -------------------------
+def detox_page():
+    st.title("📱 Detox Coach Dashboard")
+    st.write(f"Hello, **{users[st.session_state.user]['name']}** 👋")
+
+    st.subheader("Enter Your Screen Time (in hours per day)")
+    app_name = st.text_input("App Name (e.g., Instagram, YouTube, etc.)")
+    screen_time = st.number_input("Screen Time (hours)", min_value=0.0, step=0.5)
+
+    st.subheader("Your Hobbies")
+    hobbies = st.text_area("List your hobbies (comma separated)")
+
+    if st.button("Get Recommendations"):
+        if app_name and screen_time > 0:
+            st.info(f"⚡ You spend {screen_time} hours on {app_name}.")
+            st.success("💡 Recommendation: Try replacing some screen time with your hobbies.")
+            if hobbies:
+                hobby_list = hobbies.split(",")
+                st.write("👉 Suggested Alternatives:")
+                for hobby in hobby_list:
+                    st.write(f"- {hobby.strip()}")
+            else:
+                st.write("👉 Suggested: Try walking, reading, or exercise.")
+        else:
+            st.warning("Please fill out your screen time and app name.")
+
+    st.subheader("Upload proof & earn points 🎯")
+    uploaded = st.file_uploader("Upload a photo of you doing your hobby/activity")
+    if uploaded:
+        users[st.session_state.user]["points"] += 10
+        st.success("✅ Proof uploaded! +10 points earned.")
 
     st.subheader("🏆 Leaderboard")
-    df = pd.read_csv(DATA_FILE)
-    if not df.empty:
-        leaderboard = df.groupby("username")["points"].sum().sort_values(ascending=False).reset_index()
-        st.table(leaderboard)
+    leaderboard = sorted(users.items(), key=lambda x: x[1]["points"], reverse=True)
+    for rank, (email, data) in enumerate(leaderboard, start=1):
+        st.write(f"{rank}. {data['name']} - {data['points']} points")
+
+    if st.button("Logout"):
+        st.session_state.user = None
+        st.rerun()
+
+
+# -------------------------
+# App Flow
+# -------------------------
+if st.session_state.user is None:
+    choice = st.radio("Choose an option:", ["Login", "Signup"], horizontal=True)
+    if choice == "Login":
+        login()
+    else:
+        signup()
+else:
+    detox_page()

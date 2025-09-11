@@ -1,112 +1,58 @@
 import streamlit as st
 
-st.set_page_config(page_title="Detox Coach", page_icon="🌱", layout="centered")
+# Page Config
+st.set_page_config(page_title="Detox Coach", page_icon="📱", layout="centered")
 
-# Custom CSS to replicate the exact design
-st.markdown("""
-    <style>
-    body {
-        background: linear-gradient(135deg, #f2f6f9, #e6ebf0);
-        font-family: 'Segoe UI', sans-serif;
-    }
-    .login-card {
-        background-color: #fff;
-        padding: 40px 30px;
-        border-radius: 25px;
-        box-shadow: 0px 8px 25px rgba(0,0,0,0.1);
-        width: 380px;
-        margin: 80px auto;
-        text-align: center;
-    }
-    .logo {
-        margin-bottom: 15px;
-    }
-    .title {
-        font-size: 22px;
-        font-weight: bold;
-        color: #333;
-    }
-    .subtitle {
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 25px;
-    }
-    .btn {
-        padding: 10px 0;
-        width: 120px;
-        border: none;
-        border-radius: 25px;
-        font-size: 14px;
-        font-weight: bold;
-        margin: 10px 8px;
-        cursor: pointer;
-        transition: 0.3s ease;
-    }
-    .btn-login {
-        background: #6da9e4;
-        color: white;
-    }
-    .btn-login:hover {
-        background: #558ed4;
-    }
-    .btn-signup {
-        background: #8ed1a5;
-        color: white;
-    }
-    .btn-signup:hover {
-        background: #6bbd89;
-    }
-    .input-box {
-        width: 100%;
-        padding: 12px 40px;
-        margin: 12px 0;
-        border-radius: 12px;
-        border: 1px solid #ddd;
-        font-size: 14px;
-    }
-    .forgot {
-        text-align: right;
-        font-size: 12px;
-        margin: 5px 0 20px 0;
-    }
-    .forgot a {
-        color: #6da9e4;
-        text-decoration: none;
-    }
-    .or {
-        font-size: 12px;
-        color: #888;
-        margin: 15px 0;
-    }
-    .social-icons img {
-        margin: 0 8px;
-        cursor: pointer;
-    }
-    </style>
-""", unsafe_allow_html=True)
+# Background Style (matches your design)
+page_bg = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background-image: url("https://i.ibb.co/dQkbW8W/background.jpg"); /* Replace with your bg image */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+[data-testid="stHeader"] {
+    background: rgba(0,0,0,0);
+}
+.login-box {
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0px 4px 15px rgba(0,0,0,0.2);
+    text-align: center;
+}
+</style>
+"""
+st.markdown(page_bg, unsafe_allow_html=True)
 
-# HTML content
-st.markdown("""
-<div class="login-card">
-    <div class="logo">
-        <img src="https://img.icons8.com/fluency/48/leaf.png" width="50"/>
-    </div>
-    <div class="title">DETOX COACH</div>
-    <div class="subtitle">Reclaim Your Time</div>
+# Title
+st.markdown("<h1 style='text-align: center;'>📱 Detox Coach</h1>", unsafe_allow_html=True)
 
-    <button class="btn btn-login">LOGIN</button>
-    <button class="btn btn-signup">SIGNUP</button>
+# Login / Signup tabs
+tab1, tab2 = st.tabs(["🔑 Login", "🆕 Sign Up"])
 
-    <input type="text" placeholder="Email" class="input-box"/>
-    <input type="password" placeholder="Password" class="input-box"/>
+with tab1:
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+    email = st.text_input("Email")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if email and password:
+            st.session_state["user"] = email
+            st.switch_page("pages/dashboard.py")  # Go to dashboard
+        else:
+            st.error("Please enter both email and password.")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    <div class="forgot"><a href="#">Forgot Password?</a></div>
-
-    <div class="or">or continue with</div>
-    <div class="social-icons">
-        <img src="https://img.icons8.com/color/32/facebook-new.png"/>
-        <img src="https://img.icons8.com/color/32/google-logo.png"/>
-        <img src="https://img.icons8.com/ios-filled/32/mac-os.png"/>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+with tab2:
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
+    name = st.text_input("Full Name")
+    signup_email = st.text_input("Email (for signup)")
+    new_password = st.text_input("Password", type="password")
+    confirm_password = st.text_input("Confirm Password", type="password")
+    if st.button("Sign Up"):
+        if new_password == confirm_password and signup_email and name:
+            st.success("Account created! Please login.")
+        else:
+            st.error("Passwords do not match or fields are empty.")
+    st.markdown("</div>", unsafe_allow_html=True)

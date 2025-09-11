@@ -92,7 +92,7 @@ else:
     if st.sidebar.button("Logout"):
         st.session_state.logged_in = False
         st.session_state.username = None
-        st.experimental_rerun()
+        st.rerun()
 
     st.title(f"📱 Welcome {st.session_state.username}!")
     st.subheader("Tell us about your screen time")
